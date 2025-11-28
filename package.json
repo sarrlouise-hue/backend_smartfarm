@@ -1,0 +1,36 @@
+{
+  "name": "agro-boost-backend",
+  "version": "1.0.0",
+  "description": "Backend API AGRO BOOST - Contrôle irrigation solaire avec MongoDB Atlas",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "build": "echo \"Build successful - No build step required for Node.js\"",
+    "seed": "node src/seed.js"
+  },
+  "keywords": [
+    "agro",
+    "boost",
+    "iot",
+    "agriculture",
+    "mongodb",
+    "esp32",
+    "lorawan"
+  ],
+  "dependencies": {
+    "aedes": "^0.51.3",
+    "aedes-persistence-mongodb": "^9.4.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.1.0",
+    "mqtt": "^5.14.1"
+  }
+}

@@ -1,0 +1,620 @@
+{
+  "info": {
+    "name": "AGRO BOOST API",
+    "description": "Collection complète pour tester l'API AGRO BOOST - Système de contrôle d'irrigation solaire",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "agroboost-v1"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "kit_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "notification_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('auth_token', jsonData.token);",
+                  "    pm.environment.set('user_id', jsonData.user._id);",
+                  "    pm.test('Token saved', function() {",
+                  "        pm.expect(jsonData.token).to.be.a('string');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"test@agroboost.com\",\n  \"passwordHash\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Créer un nouveau compte utilisateur AGRO BOOST"
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('auth_token', jsonData.token);",
+                  "    pm.environment.set('user_id', jsonData.user._id);",
+                  "    if (jsonData.user.kits && jsonData.user.kits.length > 0) {",
+                  "        pm.environment.set('kit_id', jsonData.user.kits[0]);",
+                  "    }",
+                  "    pm.test('Login successful', function() {",
+                  "        pm.expect(jsonData.token).to.be.a('string');",
+                  "        pm.expect(jsonData.user.username).to.eql('test@agroboost.com');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"test@agroboost.com\",\n  \"passwordHash\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Connexion utilisateur - Retourne token JWT"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔧 Kits Solaires",
+      "item": [
+        {
+          "name": "Get All Kits",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.kits && jsonData.kits.length > 0) {",
+                  "        pm.environment.set('kit_id', jsonData.kits[0]._id);",
+                  "        pm.test('Kit ID saved', function() {",
+                  "            pm.expect(jsonData.kits[0]._id).to.be.a('string');",
+                  "        });",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/kits",
+              "host": ["{{base_url}}"],
+              "path": ["kits"]
+            },
+            "description": "Récupérer tous les kits solaires de l'utilisateur"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Kit by ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/kits/{{kit_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["kits", "{{kit_id}}"]
+            },
+            "description": "Récupérer les détails d'un kit spécifique"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "💧 Contrôle Pompe",
+      "item": [
+        {
+          "name": "Turn Pump ON",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pompes/{{kit_id}}/control",
+              "host": ["{{base_url}}"],
+              "path": ["pompes", "{{kit_id}}", "control"]
+            },
+            "description": "Allumer la pompe (avec validations batterie/eau)"
+          },
+          "response": []
+        },
+        {
+          "name": "Turn Pump OFF",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/pompes/{{kit_id}}/control",
+              "host": ["{{base_url}}"],
+              "path": ["pompes", "{{kit_id}}", "control"]
+            },
+            "description": "Éteindre la pompe"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🗓️ Programmation Irrigation",
+      "item": [
+        {
+          "name": "Create Schedule",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startTime\": \"2025-11-26T06:00:00Z\",\n  \"durationMinutes\": 30,\n  \"daysOfWeek\": [\"L\", \"M\", \"M\", \"J\", \"V\"],\n  \"thresholdHumidity\": 35.0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/schedules/{{kit_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["schedules", "{{kit_id}}"]
+            },
+            "description": "Créer un nouveau créneau d'irrigation automatique"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Schedule",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startTime\": \"2025-11-26T18:30:00Z\",\n  \"durationMinutes\": 45,\n  \"daysOfWeek\": [\"L\", \"M\", \"V\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/schedules/{{kit_id}}/0",
+              "host": ["{{base_url}}"],
+              "path": ["schedules", "{{kit_id}}", "0"]
+            },
+            "description": "Modifier le créneau à l'index 0 (premier créneau)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Schedule",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/schedules/{{kit_id}}/0",
+              "host": ["{{base_url}}"],
+              "path": ["schedules", "{{kit_id}}", "0"]
+            },
+            "description": "Supprimer le créneau à l'index 0"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Capteurs IoT",
+      "item": [
+        {
+          "name": "Get All Sensor Data (24h)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sensors/{{kit_id}}?period=24h",
+              "host": ["{{base_url}}"],
+              "path": ["sensors", "{{kit_id}}"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "24h"
+                }
+              ]
+            },
+            "description": "Récupérer toutes les données capteurs des dernières 24h"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Sensor Data (7 days)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sensors/{{kit_id}}?period=7d",
+              "host": ["{{base_url}}"],
+              "path": ["sensors", "{{kit_id}}"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "7d"
+                }
+              ]
+            },
+            "description": "Données capteurs des 7 derniers jours"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Latest Sensor Data",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sensors/{{kit_id}}/latest",
+              "host": ["{{base_url}}"],
+              "path": ["sensors", "{{kit_id}}", "latest"]
+            },
+            "description": "4 dernières lectures (une par type de capteur)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Humidity Data",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sensors/{{kit_id}}/type?type=humidity&period=24h",
+              "host": ["{{base_url}}"],
+              "path": ["sensors", "{{kit_id}}", "type"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "humidity"
+                },
+                {
+                  "key": "period",
+                  "value": "24h"
+                }
+              ]
+            },
+            "description": "Données d'humidité uniquement"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Temperature Data",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sensors/{{kit_id}}/type?type=temp&period=24h",
+              "host": ["{{base_url}}"],
+              "path": ["sensors", "{{kit_id}}", "type"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "temp"
+                },
+                {
+                  "key": "period",
+                  "value": "24h"
+                }
+              ]
+            },
+            "description": "Données de température uniquement"
+          },
+          "response": []
+        },
+        {
+          "name": "Log Sensor Data (ESP32)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceId\": \"ESP32-AGRO-001\",\n  \"battery\": 82,\n  \"waterLevel\": 76,\n  \"voltage\": 12.58,\n  \"current\": 2.3,\n  \"temperature\": 28.5,\n  \"humidity\": 76,\n  \"pumpStatus\": \"ON\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/sensors/log",
+              "host": ["{{base_url}}"],
+              "path": ["sensors", "log"]
+            },
+            "description": "Endpoint pour ESP32/LoRaWAN pour envoyer les données"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔔 Notifications",
+      "item": [
+        {
+          "name": "Get All Notifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.notifications && jsonData.notifications.length > 0) {",
+                  "        pm.environment.set('notification_id', jsonData.notifications[0].id || jsonData.notifications[0]._id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["notifications"]
+            },
+            "description": "Liste toutes les notifications (alert, warning, info, success)"
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/{{notification_id}}/read",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", "{{notification_id}}", "read"]
+            },
+            "description": "Marquer une notification comme lue"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

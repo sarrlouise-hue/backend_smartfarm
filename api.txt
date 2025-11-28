@@ -1,0 +1,346 @@
+1️⃣ Authentification
+a) Register (Créer un utilisateur)
+
+Méthode : POST
+
+URL : http://localhost:3000/api/auth/register
+
+Headers :
+
+Content-Type: application/json
+
+
+Body JSON :
+
+{
+  "username": "test@agroboost.com",
+  "passwordHash": "1234"
+}
+
+
+✅ Astuce : Si l’utilisateur existe déjà, tu auras une erreur "Nom d'utilisateur déjà utilisé". Dans ce cas, passe directement au login.
+
+b) Login (Se connecter)
+
+Méthode : POST
+
+URL : http://localhost:3000/api/auth/login
+
+Headers :
+
+Content-Type: application/json
+
+
+Body JSON :
+
+{
+  "username": "test@agroboost.com",
+  "passwordHash": "1234"
+}
+
+
+Réponse attendue :
+
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "_id": "69283ce5570e911f4f2ee305",
+    "username": "test@agroboost.com",
+    "kits": ["674638a2c2e4f5a6b7c8d9e1"]
+  }
+}
+
+
+✅ Important :
+
+Copier la valeur de "token" pour toutes les requêtes suivantes dans Authorization: Bearer <token>.
+
+Copier l’ID du kit "kits[0]" pour toutes les requêtes qui demandent :kitId.
+
+2️⃣ Kits
+a) Lister les kits
+
+Méthode : GET
+
+URL : http://localhost:3000/api/kits
+
+Headers :
+
+Authorization: Bearer <token>
+
+
+Réponse attendue : un tableau avec tous les kits et leurs données (pumpStatus, batteryLevel, irrigationSchedules, etc.).
+
+b) Détails d’un kit
+
+Méthode : GET
+
+URL : http://localhost:3000/api/kits/:kitId
+
+Headers :
+
+Authorization: Bearer <token>
+
+
+Remplacer :kitId par l’ID réel du kit.
+Réponse attendue : le document complet du kit.
+
+3️⃣ Pompes
+Contrôler une pompe ON/OFF
+
+Méthode : POST
+
+URL : http://localhost:3000/api/pompes/:kitId/control
+
+Headers :
+
+Authorization: Bearer <token>
+Content-Type: application/json
+
+
+Body JSON :
+
+{
+  "status": true
+}
+
+
+Réponse attendue :
+
+{
+  "_id": "674638a2c2e4f5a6b7c8d9e1",
+  "deviceId": "ESP32-AGRO-001",
+  "name": "Kit Tomates - Parcelle 1",
+  "pumpStatus": true,
+  "batteryLevel": 86,
+  "waterLevel": 78,
+  "lastActivity": "2025-11-27T11:35:00Z"
+}
+
+
+⚠️ Erreurs fréquentes :
+
+Batterie < 20% → "Impossible d'allumer la pompe : batterie trop faible"
+
+Eau < 10% → "Impossible d'allumer la pompe : niveau d'eau trop bas (FORBID WORKING EMPTY)"
+
+4️⃣ Schedules
+Ajouter un créneau
+
+Méthode : POST
+
+URL : http://localhost:3000/api/schedules/:kitId
+
+Headers :
+
+Authorization: Bearer <token>
+Content-Type: application/json
+
+
+Body JSON :
+
+{
+  "startTime": "2025-11-27T06:00:00Z",
+  "durationMinutes": 30,
+  "daysOfWeek": ["L","M","M","J","V"],
+  "thresholdHumidity": 35.0
+}
+
+
+✅ Astuce : Vérifie que :kitId est correct. Sinon tu auras "Kit non trouvé".
+
+Modifier un créneau
+
+Méthode : PUT
+
+URL : http://localhost:3000/api/schedules/:kitId/:scheduleIndex
+
+Body JSON :
+
+{
+  "startTime": "2025-11-27T18:30:00Z",
+  "durationMinutes": 45
+}
+
+
+scheduleIndex = 0 pour le premier créneau, 1 pour le deuxième, etc.
+
+Supprimer un créneau
+
+Méthode : DELETE
+
+URL : http://localhost:3000/api/schedules/:kitId/:scheduleIndex
+
+Headers : Authorization
+
+5️⃣ Sensors
+Logger les données (depuis ESP32)
+
+Méthode : POST
+
+URL : http://localhost:3000/api/sensors/log
+
+Headers : Content-Type: application/json
+
+Body JSON :
+
+{
+  "deviceId": "ESP32-AGRO-001",
+  "battery": 82,
+  "waterLevel": 76,
+  "voltage": 12.58,
+  "current": 2.3,
+  "temperature": 28.5,
+  "humidity": 76,
+  "pumpStatus": "ON"
+}
+
+Récupérer les données capteurs
+
+Méthode : GET
+
+URL : http://localhost:3000/api/sensors/:kitId?period=24h
+
+Headers : Authorization
+
+Récupérer dernières valeurs
+
+Méthode : GET
+
+URL : http://localhost:3000/api/sensors/:kitId/latest
+
+6️⃣ Notifications
+Lister toutes les notifications
+
+Méthode : GET
+
+URL : http://localhost:3000/api/notifications
+
+Headers : Authorization
+
+Marquer comme lue
+
+Méthode : PATCH
+
+URL : http://localhost:3000/api/notifications/:notifId/read
+
+✅ Conseils pour ne pas avoir d’erreurs
+
+Toujours copier le token du login et le mettre dans Authorization: Bearer <token> pour toutes les requêtes qui le demandent.
+
+Toujours utiliser un kitId valide issu du login ou GET /kits.
+
+Pour schedules, le scheduleIndex doit exister.
+
+Pour les pompes, vérifier que la batterie et le niveau d’eau sont suffisants.
+
+Vérifier que le serveur Node.js est bien lancé sur le port 3000.
+
+Si tu veux, je peux maintenant te préparer un fichier Postman prêt à importer, avec toutes ces requêtes, headers, bodies et tests automatiques pour token et kitId.
+
+Veux‑tu que je fasse ça ?
+
+Vous avez dit :
+kits pourquoi autorisation comment sa passe je vois pas son  json?
+ChatGPT a dit :
+
+Ah, je comprends ton doute. Laisse-moi t’expliquer clairement pourquoi les kits demandent une autorisation et comment ça passe dans Postman.
+
+1️⃣ Pourquoi l’authentification est nécessaire pour les kits
+
+Dans AGRO BOOST :
+
+Chaque utilisateur possède ses propres kits.
+
+On ne veut pas que n’importe qui puisse voir ou contrôler tes kits.
+
+Donc toutes les routes qui concernent un kit (GET /api/kits, POST /api/pompes, POST /api/schedules, etc.) demandent un token JWT pour vérifier l’identité.
+
+C’est pour sécuriser l’accès aux données et commandes.
+
+2️⃣ Comment ça passe techniquement
+
+Tu t’inscris ou te connectes via /api/auth/login :
+
+{
+  "username": "test@agroboost.com",
+  "passwordHash": "1234"
+}
+
+
+Le serveur te renvoie un token JWT :
+
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "_id": "69283ce5570e911f4f2ee305",
+    "username": "test@agroboost.com",
+    "kits": ["674638a2c2e4f5a6b7c8d9e1"]
+  }
+}
+
+
+Dans Postman, pour accéder aux kits :
+
+Méthode : GET
+
+URL : http://localhost:3000/api/kits
+
+Headers :
+
+Authorization: Bearer <ton_token>
+
+
+Sans ce header, tu auras :
+
+{
+  "error": "Endpoint non trouvé"
+}
+
+
+ou parfois "Unauthorized" selon la configuration.
+
+3️⃣ JSON que tu obtiens pour les kits
+
+Exemple pour GET /api/kits :
+
+{
+  "kits": [
+    {
+      "_id": "674638a2c2e4f5a6b7c8d9e1",
+      "deviceId": "ESP32-AGRO-001",
+      "name": "Kit Tomates - Parcelle 1",
+      "location": "Keur Moussa",
+      "pumpStatus": true,
+      "batteryLevel": 86,
+      "waterLevel": 78,
+      "voltage": 12.58,
+      "current": 2.3,
+      "pumpModel": "Likou 4PSS17.0",
+      "pumpPower": 2200,
+      "irrigationSchedules": [
+        {
+          "startTime": "2025-11-27T06:00:00Z",
+          "durationMinutes": 30,
+          "daysOfWeek": ["L","M","M","J","V"],
+          "thresholdHumidity": 35.0,
+          "isActive": true
+        }
+      ],
+      "lastActivity": "2025-11-27T11:30:00Z"
+    }
+  ]
+}
+
+4️⃣ Résumé rapide
+
+Pourquoi autorisation ?
+Pour que chaque utilisateur ne voie que ses kits, sécuriser l’accès.
+
+Comment ça passe ?
+
+Login → tu reçois un token.
+
+Tu mets ce token dans Authorization: Bearer <token> pour toutes les requêtes sur les kits.
+
+Le serveur vérifie le token et renvoie tes kits.
